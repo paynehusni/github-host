@@ -15,20 +15,30 @@ import json
 
 
 def getIpFromIpaddress(site):
-    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebkit/737.36(KHTML, like Gecke) Chrome/52.0.2743.82 Safari/537.36',
-               'Host': 'ipaddress.com'}
-    url = "https://ipaddress.com/search/" + site
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36',
+        'Host': 'ipaddress.com'
+    }
+    url = "https://www.ipaddress.com/site/" + site
     trueip = None
     try:
         res = requests.get(url, headers=headers, timeout=5)
+        res.raise_for_status()  # 确保我们为错误的状态码引发错误
+        
+        if res.text.strip() == "":
+            raise ValueError("从服务器收到空响应。")
+        
         soup = BeautifulSoup(res.text, 'html.parser')
         ip = re.findall(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", res.text)
-        result = soup.find_all('div', class_="comma-separated")
-        for c in result:
-            if len(ip) != 0:
-                trueip = ip[0]
-    except Exception as e:
-        print("查询" + site + " 时出现错误: " + str(e))
+        
+        if ip:
+            trueip = ip[0]  # 返回找到的第一个IP地址
+        else:
+            raise ValueError("在响应中未找到IP地址。")
+    except requests.RequestException as e:
+        print(f"查询 {site} 时出错：{e}")
+    except ValueError as ve:
+        print(f"值错误：{ve}")
     return trueip
 
 
