@@ -94,17 +94,28 @@ def getIpFromipapi(site):
     '''
     return trueip: None or ip
     '''
-    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebkit/737.36(KHTML, like Gecke) Chrome/52.0.2743.82 Safari/537.36',
-               'Host': 'ip-api.com'}
-    url = "http://ip-api.com/json/%s?lang=zh-CN" % (site)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    url = f"http://ip-api.com/json/{site}?lang=zh-CN"
     trueip = None
+
     for i in range(5):
         try:
             res = requests.get(url, headers=headers, timeout=5)
-            res = json.loads(res.text)
-            if(res["status"] == "success") and len(re.findall(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", res["query"])) == 1:
-                trueip = res["query"]
+            res.raise_for_status()  # 检查是否有HTTP错误
+            data = res.json()  # 直接将响应解析为JSON
+            print(f"Debug: 响应数据: {data}")  # 打印调试信息
+            if data["status"] == "success" and re.match(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", data["query"]):
+                trueip = data["query"]
                 break
+        except requests.RequestException as e:
+            print(f"查询 {site} 时出现网络错误: {e}")
+        except json.JSONDecodeError:
+            print(f"查询 {site} 时返回的不是有效的JSON")
+        except KeyError:
+            print(f"查询 {site} 时返回的JSON格式不正确: {res.text}")
         except Exception as e:
-            print("查询" + site + " 时出现错误: " + str(e))
+            print(f"查询 {site} 时出现未知错误: {e}")
+    
     return trueip
