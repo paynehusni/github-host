@@ -16,8 +16,7 @@ import json
 
 def getIpFromIpaddress(site):
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36',
-        'Host': 'ipaddress.com'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     }
     url = "https://www.ipaddress.com/site/" + site
     trueip = None
@@ -25,11 +24,11 @@ def getIpFromIpaddress(site):
         res = requests.get(url, headers=headers, timeout=10)
         res.raise_for_status()  # 确保我们为错误的状态码引发错误
         
-        # 打印响应内容用于调试
+        # 打印响应状态码和部分响应内容用于调试
         print("响应状态码:", res.status_code)
         print("响应头:", res.headers)
-        print("响应内容:", res.text[:500])  # 只打印前500个字符以避免过多输出
-        
+        print("响应内容:", res.text[:1000])  # 打印前1000个字符
+
         if res.text.strip() == "":
             raise ValueError("从服务器收到空响应。")
         
@@ -41,7 +40,9 @@ def getIpFromIpaddress(site):
         else:
             raise ValueError("在响应中未找到IP地址。")
     except requests.RequestException as e:
-        print(f"查询 {site} 时出错：{e}")
+        print(f"查询 {site} 时请求错误：{e}")
+        if res is not None:
+            print("响应内容:", res.text)
     except ValueError as ve:
         print(f"值错误：{ve}")
     except Exception as e:
