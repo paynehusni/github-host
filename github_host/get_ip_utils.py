@@ -22,8 +22,13 @@ def getIpFromIpaddress(site):
     url = "https://www.ipaddress.com/site/" + site
     trueip = None
     try:
-        res = requests.get(url, headers=headers, timeout=5)
+        res = requests.get(url, headers=headers, timeout=10)
         res.raise_for_status()  # 确保我们为错误的状态码引发错误
+        
+        # 打印响应内容用于调试
+        print("响应状态码:", res.status_code)
+        print("响应头:", res.headers)
+        print("响应内容:", res.text[:500])  # 只打印前500个字符以避免过多输出
         
         if res.text.strip() == "":
             raise ValueError("从服务器收到空响应。")
@@ -39,6 +44,8 @@ def getIpFromIpaddress(site):
         print(f"查询 {site} 时出错：{e}")
     except ValueError as ve:
         print(f"值错误：{ve}")
+    except Exception as e:
+        print(f"未知错误：{e}")
     return trueip
 
 
