@@ -39,7 +39,7 @@ class Github(object):
             f.write("#*********************github " +
                     str(today) + " update********************\n")
             f.write(
-                "#******* get latest hosts: https://raw.githubusercontent.com/paynehusni/github-host/master/hosts-routeros\n")
+                "#******* get latest hosts: https://raw.githubusercontent.com/paynehusni/github-host/master/hosts-routeros.txt\n")
             for key in self.addr2ip:
                 f.write("add address=" + self.addr2ip[key] + " name="+ key + "\n")
 
