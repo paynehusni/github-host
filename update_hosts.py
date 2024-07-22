@@ -1,5 +1,8 @@
 import socket
 import re
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def get_ip_addresses(domains):
     ip_addresses = {}
@@ -7,8 +10,10 @@ def get_ip_addresses(domains):
         try:
             ip = socket.gethostbyname(domain)
             ip_addresses[domain] = ip
+            logging.info(f"Resolved {domain} to {ip}")
         except socket.gaierror:
             ip_addresses[domain] = 'Error: Domain not found'
+            logging.error(f"Failed to resolve {domain}")
     return ip_addresses
 
 def read_existing_hosts(file_path='hosts'):
@@ -21,8 +26,9 @@ def read_existing_hosts(file_path='hosts'):
                     if len(parts) >= 2:
                         ip, domain = parts[0], parts[1]
                         hosts[domain] = ip
+                        logging.info(f"Read existing host: {domain} -> {ip}")
     except FileNotFoundError:
-        pass
+        logging.warning(f"{file_path} not found, will create a new one.")
     return hosts
 
 def write_to_hosts(ip_addresses, file_path='hosts'):
@@ -31,7 +37,7 @@ def write_to_hosts(ip_addresses, file_path='hosts'):
         with open(file_path, 'r') as file:
             current_lines = file.readlines()
     except FileNotFoundError:
-        pass
+        logging.warning(f"{file_path} not found, will create a new one.")
 
     with open(file_path, 'w') as file:
         # Retain existing lines that aren't being updated
@@ -42,84 +48,49 @@ def write_to_hosts(ip_addresses, file_path='hosts'):
                     ip, domain = parts[0], parts[1]
                     if domain not in ip_addresses:
                         file.write(line)
+                        logging.info(f"Retained line: {line.strip()}")
 
         for domain, ip in ip_addresses.items():
             if "Error" not in ip:
                 file.write(f"{ip}\t{domain}\n")
+                logging.info(f"Updated {domain} -> {ip}")
             else:
-                print(f"Skipping {domain} due to error: {ip}")
+                logging.error(f"Skipping {domain} due to error: {ip}")
+
+def read_domains(file_path='domains.txt'):
+    domains = []
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                domain = line.strip()
+                if domain:
+                    domains.append(domain)
+                    logging.info(f"Read domain: {domain}")
+    except FileNotFoundError:
+        logging.error(f"{file_path} not found.")
+    return domains
 
 def main():
-    new_domains = [
-        "github.global.ssl.fastly.net",
-        "assets-cdn.github.com",
-        "documentcloud.github.com",
-        "gist.github.com",
-        "gist.githubusercontent.com",
-        "github.githubassets.com",
-        "help.github.com",
-        "nodeload.github.com",
-        "raw.github.com",
-        "status.github.com",
-        "training.github.com",
-        "avatars.githubusercontent.com",
-        "avatars0.githubusercontent.com",
-        "avatars1.githubusercontent.com",
-        "avatars2.githubusercontent.com",
-        "avatars3.githubusercontent.com",
-        "avatars4.githubusercontent.com",
-        "avatars5.githubusercontent.com",
-        "avatars6.githubusercontent.com",
-        "avatars7.githubusercontent.com",
-        "avatars8.githubusercontent.com",
-        "favicons.githubusercontent.com",
-        "codeload.github.com",
-        "github-cloud.s3.amazonaws.com",
-        "github-com.s3.amazonaws.com",
-        "github-production-release-asset-2e65be.s3.amazonaws.com",
-        "github-production-user-asset-6210df.s3.amazonaws.com",
-        "github-production-repository-file-5c1aeb.s3.amazonaws.com",
-        "githubstatus.com",
-        "github.community",
-        "media.githubusercontent.com",
-        "camo.githubusercontent.com",
-        "raw.githubusercontent.com",
-        "cloud.githubusercontent.com",
-        "user-images.githubusercontent.com",
-        "customer-stories-feed.github.com",
-        "pages.github.com",
-        "api.github.com",
-        "live.github.com",
-        "githubapp.com",
-        "github.dev",
-        "github.com",
-        "alive.github.com",
-        "central.github.com",
-        "collector.github.com",
-        "desktop.githubusercontent.com",
-        "github.blog",
-        "github.io",
-        "github.map.fastly.net",
-        "objects.githubusercontent.com",
-        "pipelines.actions.githubusercontent.com",
-        "private-user-images.githubusercontent.com",
-        "vscode.dev",
-        "education.github.com",
-        "developer.github.com",
-        "enterprise.github.com",
-        "docs.github.com",
-        "www.githubstatus.com"
-    ]
+    logging.info("Starting script execution.")
+    
+    domains_file = 'domains.txt'
+    hosts_file = 'hosts'
 
-    existing_hosts = read_existing_hosts()
+    new_domains = read_domains(domains_file)
+    if not new_domains:
+        logging.error("No domains to process. Exiting.")
+        return
+
+    existing_hosts = read_existing_hosts(hosts_file)
     new_ip_addresses = get_ip_addresses(new_domains)
     
     # Merge new IP addresses with existing ones
     existing_hosts.update(new_ip_addresses)
 
-    write_to_hosts(existing_hosts)
+    write_to_hosts(existing_hosts, hosts_file)
 
-    print("Hosts file has been updated.")
+    logging.info("Hosts file has been updated.")
+    logging.info("Script execution completed.")
 
 if __name__ == '__main__':
     main()
