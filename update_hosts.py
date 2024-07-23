@@ -34,10 +34,10 @@ def read_existing_hosts(file_path='hosts'):
         logging.error(f"Error reading {file_path}: {e}")
     return hosts
 
-def write_to_hosts(ip_addresses, file_path='hosts'):
+def write_to_hosts(ip_addresses, file_path="hosts"):
     current_lines = []
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             current_lines = file.readlines()
     except FileNotFoundError:
         logging.warning(f"{file_path} not found, will create a new one.")
@@ -45,14 +45,14 @@ def write_to_hosts(ip_addresses, file_path='hosts'):
         logging.error(f"Error reading {file_path}: {e}")
 
     try:
-        with open(file_path, 'w') as file:
+        with open(file_path, "w") as file:
             # Write header comments
             file.write("# github-hosts start\n")
-            
+
             # Retain existing lines that aren't being updated
             for line in current_lines:
-                if line.strip() and not line.startswith('#'):
-                    parts = re.split(r'\s+', line.strip())
+                if line.strip() and not line.startswith("#"):
+                    parts = re.split(r"\s+", line.strip())
                     if len(parts) >= 2:
                         ip, domain = parts[0], parts[1]
                         if domain not in ip_addresses:
@@ -61,11 +61,13 @@ def write_to_hosts(ip_addresses, file_path='hosts'):
 
             for domain, ip in ip_addresses.items():
                 if "Error" not in ip:
-                    file.write(f"{ip}\t{domain}\n")
-                    logging.info(f"Updated {domain} -> {ip}")
+                    # Ensure IP address is formatted to align
+                    formatted_ip = ip.ljust(15)  # Adjust the number based on your needs
+                    file.write(f"{formatted_ip}\t{domain}\n")
+                    logging.info(f"Updated {domain} -> {formatted_ip}")
                 else:
                     logging.error(f"Skipping {domain} due to error: {ip}")
-            
+
             # Write footer comments
             current_time = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
             file.write(f"# {current_time}\n")
