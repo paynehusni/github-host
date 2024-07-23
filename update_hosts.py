@@ -1,6 +1,7 @@
 import socket
 import re
 import logging
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -11,9 +12,9 @@ def get_ip_addresses(domains):
             ip = socket.gethostbyname(domain)
             ip_addresses[domain] = ip
             logging.info(f"Resolved {domain} to {ip}")
-        except socket.gaierror:
+        except socket.gaierror as e:
             ip_addresses[domain] = 'Error: Domain not found'
-            logging.error(f"Failed to resolve {domain}")
+            logging.error(f"Failed to resolve {domain}: {e}")
     return ip_addresses
 
 def read_existing_hosts(file_path='hosts'):
@@ -29,6 +30,8 @@ def read_existing_hosts(file_path='hosts'):
                         logging.info(f"Read existing host: {domain} -> {ip}")
     except FileNotFoundError:
         logging.warning(f"{file_path} not found, will create a new one.")
+    except IOError as e:
+        logging.error(f"Error reading {file_path}: {e}")
     return hosts
 
 def write_to_hosts(ip_addresses, file_path='hosts'):
@@ -38,24 +41,38 @@ def write_to_hosts(ip_addresses, file_path='hosts'):
             current_lines = file.readlines()
     except FileNotFoundError:
         logging.warning(f"{file_path} not found, will create a new one.")
+    except IOError as e:
+        logging.error(f"Error reading {file_path}: {e}")
 
-    with open(file_path, 'w') as file:
-        # Retain existing lines that aren't being updated
-        for line in current_lines:
-            if line.strip() and not line.startswith('#'):
-                parts = re.split(r'\s+', line.strip())
-                if len(parts) >= 2:
-                    ip, domain = parts[0], parts[1]
-                    if domain not in ip_addresses:
-                        file.write(line)
-                        logging.info(f"Retained line: {line.strip()}")
+    try:
+        with open(file_path, 'w') as file:
+            # Write header comments
+            file.write("# github-hosts start\n")
+            
+            # Retain existing lines that aren't being updated
+            for line in current_lines:
+                if line.strip() and not line.startswith('#'):
+                    parts = re.split(r'\s+', line.strip())
+                    if len(parts) >= 2:
+                        ip, domain = parts[0], parts[1]
+                        if domain not in ip_addresses:
+                            file.write(line)
+                            logging.info(f"Retained line: {line.strip()}")
 
-        for domain, ip in ip_addresses.items():
-            if "Error" not in ip:
-                file.write(f"{ip}\t{domain}\n")
-                logging.info(f"Updated {domain} -> {ip}")
-            else:
-                logging.error(f"Skipping {domain} due to error: {ip}")
+            for domain, ip in ip_addresses.items():
+                if "Error" not in ip:
+                    file.write(f"{ip}\t{domain}\n")
+                    logging.info(f"Updated {domain} -> {ip}")
+                else:
+                    logging.error(f"Skipping {domain} due to error: {ip}")
+            
+            # Write footer comments
+            current_time = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
+            file.write(f"# {current_time}\n")
+            file.write("# https://github.com/paynehusni/github-host\n")
+            file.write("# github-hosts end\n")
+    except IOError as e:
+        logging.error(f"Error writing to {file_path}: {e}")
 
 def read_domains(file_path='domains.txt'):
     domains = []
@@ -68,6 +85,8 @@ def read_domains(file_path='domains.txt'):
                     logging.info(f"Read domain: {domain}")
     except FileNotFoundError:
         logging.error(f"{file_path} not found.")
+    except IOError as e:
+        logging.error(f"Error reading {file_path}: {e}")
     return domains
 
 def main():
