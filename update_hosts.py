@@ -2,8 +2,12 @@ import socket
 import re
 import logging
 from datetime import datetime
+import pytz
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def get_ip_addresses(domains):
     ip_addresses = {}
@@ -13,17 +17,18 @@ def get_ip_addresses(domains):
             ip_addresses[domain] = ip
             logging.info(f"Resolved {domain} to {ip}")
         except socket.gaierror as e:
-            ip_addresses[domain] = 'Error: Domain not found'
+            ip_addresses[domain] = "Error: Domain not found"
             logging.error(f"Failed to resolve {domain}: {e}")
     return ip_addresses
 
-def read_existing_hosts(file_path='hosts'):
+
+def read_existing_hosts(file_path="hosts"):
     hosts = {}
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             for line in file:
-                if line.strip() and not line.startswith('#'):
-                    parts = re.split(r'\s+', line.strip())
+                if line.strip() and not line.startswith("#"):
+                    parts = re.split(r"\s+", line.strip())
                     if len(parts) >= 2:
                         ip, domain = parts[0], parts[1]
                         hosts[domain] = ip
@@ -33,6 +38,7 @@ def read_existing_hosts(file_path='hosts'):
     except IOError as e:
         logging.error(f"Error reading {file_path}: {e}")
     return hosts
+
 
 def write_to_hosts(ip_addresses, file_path="hosts"):
     current_lines = []
@@ -68,18 +74,22 @@ def write_to_hosts(ip_addresses, file_path="hosts"):
                 else:
                     logging.error(f"Skipping {domain} due to error: {ip}")
 
-            # Write footer comments
-            current_time = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
+            # Define the timezone with UTC +3
+            timezone = pytz.FixedOffset(180)  # 180 minutes = 3 hours
+
+            # Get the current time with timezone
+            current_time = datetime.now(timezone).strftime("%m/%d/%Y, %I:%M:%S %p UTC %z")
             file.write(f"# {current_time}\n")
             file.write("# https://github.com/paynehusni/github-host\n")
             file.write("# github-hosts end\n")
     except IOError as e:
         logging.error(f"Error writing to {file_path}: {e}")
 
-def read_domains(file_path='domains.txt'):
+
+def read_domains(file_path="domains.txt"):
     domains = []
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             for line in file:
                 domain = line.strip()
                 if domain:
@@ -91,11 +101,12 @@ def read_domains(file_path='domains.txt'):
         logging.error(f"Error reading {file_path}: {e}")
     return domains
 
+
 def main():
     logging.info("Starting script execution.")
-    
-    domains_file = 'domains.txt'
-    hosts_file = 'hosts'
+
+    domains_file = "domains.txt"
+    hosts_file = "hosts"
 
     new_domains = read_domains(domains_file)
     if not new_domains:
@@ -104,7 +115,7 @@ def main():
 
     existing_hosts = read_existing_hosts(hosts_file)
     new_ip_addresses = get_ip_addresses(new_domains)
-    
+
     # Merge new IP addresses with existing ones
     existing_hosts.update(new_ip_addresses)
 
@@ -113,5 +124,6 @@ def main():
     logging.info("Hosts file has been updated.")
     logging.info("Script execution completed.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
