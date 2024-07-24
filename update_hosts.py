@@ -82,7 +82,7 @@ def write_to_hosts(ip_addresses, file_path="hosts"):
             current_time = current_time[:-2] + ':' + current_time[-2:]
             file.write(f"# {current_time}\n")
             file.write("# https://github.com/paynehusni/github-host\n")
-            file.write("# github-hosts end\n")
+            file.write("# github-hosts end")
     except IOError as e:
         logging.error(f"Error writing to {file_path}: {e}")
 
