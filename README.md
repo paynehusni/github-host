@@ -16,6 +16,7 @@ jsDelivr CDN: [hosts](https://cdn.jsdelivr.net/gh/paynehusni/github-host/hosts)
 ```
 C:\Windows\System32\drivers\etc\hosts
 ```
+We recommend using the [open-source tool](https://github.com/paynehusni/github-host/releases/tag/1.0) from our project to update the hosts file on Windows.
 ### Linux
 ```
 /etc/hosts
