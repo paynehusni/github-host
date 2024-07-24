@@ -78,7 +78,8 @@ def write_to_hosts(ip_addresses, file_path="hosts"):
             timezone = pytz.FixedOffset(180)  # 180 minutes = 3 hours
 
             # Get the current time with timezone
-            current_time = datetime.now(timezone).strftime("%m/%d/%Y, %I:%M:%S %p UTC %z")
+            current_time = datetime.now(timezone).strftime("%m/%d/%Y, %I:%M:%S%p UTC%z")
+            current_time = current_time[:-2] + ':' + current_time[-2:]
             file.write(f"# {current_time}\n")
             file.write("# https://github.com/paynehusni/github-host\n")
             file.write("# github-hosts end\n")
