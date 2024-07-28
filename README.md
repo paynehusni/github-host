@@ -3,7 +3,8 @@
 This project aims to solve issues related to GitHub domain name pollution by automatically updating the `hosts` file with the correct IP addresses for GitHub domains. 
 
 GitHub RAW: [hosts](https://raw.githubusercontent.com/paynehusni/github-host/master/hosts) <br>
-jsDelivr CDN: [hosts](https://cdn.jsdelivr.net/gh/paynehusni/github-host/hosts)
+jsDelivr CDN: [hosts](https://cdn.jsdelivr.net/gh/paynehusni/github-host/hosts) <br>
+Statically CDN: [hosts](https://cdn.statically.io/gh/paynehusni/github-host/master/hosts)
 
 ## Features
 
