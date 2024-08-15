@@ -59,3 +59,4 @@ www.githubstatus.com
 main.vscode-cdn.net
 www.vscode-unpkg.net
 assets.github.dev
+api.githubcopilot.com
