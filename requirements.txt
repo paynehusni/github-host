@@ -1,2 +1,2 @@
 pytz==2026.2
-Requests==2.33.1
+Requests==2.34.0
